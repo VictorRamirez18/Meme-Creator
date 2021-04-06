@@ -7,6 +7,7 @@ function App() {
       <div className="container">
         <h1 className="title">Meme creator</h1>
         <MemeCreador></MemeCreador>
+        <Dummy></Dummy>
       </div>
     </div>
   );
@@ -70,4 +71,33 @@ function MemeForm(props) {
     </form>
   );
 }
+
+class Dummy extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      memes: "",
+    };
+  }
+  componentWillMount() {
+    console.log("Will Mount");
+    fetch("https://api.imgflip.com/get_memes")
+      .then((response) => {
+        return response.json();
+      })
+      .then((response) => {
+        this.setState({ memes: response });
+      });
+  }
+
+  render() {
+    console.log("JSON");
+    let prueba = this.state.memes;
+    console.log(prueba);
+    let prueba2 = prueba.data;
+    console.log(prueba2);
+    return <div>Hola Mundo</div>;
+  }
+}
+function card(props) {}
 export default App;
