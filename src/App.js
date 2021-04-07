@@ -1,14 +1,15 @@
 import React from "react";
 import "./App.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   return (
     <div className="App">
-      <div className="container">
+      <div className="contenedor">
         <h1 className="title">Meme creator</h1>
         <MemeCreador></MemeCreador>
-        <Dummy></Dummy>
       </div>
+      <Dummy></Dummy>
     </div>
   );
 }
@@ -41,7 +42,11 @@ class MemeCreador extends React.Component {
 function Meme(props) {
   return (
     <div className="meme-template">
-      <img src={props.items.plantilla} className="image-template"></img>
+      <img
+        src={props.items.plantilla}
+        className="image-template"
+        alt="template-plantilla"
+      ></img>
       <h2 className="top-text">{props.items.top}</h2>
       <h2 className="bottom-text">{props.items.bottom}</h2>
     </div>
@@ -76,28 +81,44 @@ class Dummy extends React.Component {
   constructor() {
     super();
     this.state = {
-      memes: "",
+      memes: [],
+      isFetch: true,
+      index: 0,
     };
   }
-  componentWillMount() {
-    console.log("Will Mount");
+  componentDidMount() {
+    // console.log("Did Mount");
     fetch("https://api.imgflip.com/get_memes")
-      .then((response) => {
-        return response.json();
-      })
-      .then((response) => {
-        this.setState({ memes: response });
-      });
+      .then((response) => response.json())
+      .then((memesJson) =>
+        this.setState({ memes: memesJson.data, isFetch: false })
+      );
   }
 
+  handleButton = (event) => {
+    const { value } = event.target;
+    let count = Number(value) + 1;
+    if (count >= 100) count = 0;
+    this.setState({ index: count });
+  };
+
   render() {
-    console.log("JSON");
-    let prueba = this.state.memes;
-    console.log(prueba);
-    let prueba2 = prueba.data;
-    console.log(prueba2);
-    return <div>Hola Mundo</div>;
+    if (this.state.isFetch) {
+      return <h2 className="demo">"Loading...";</h2>;
+    }
+    let contador = this.state.index;
+    const item = this.state.memes.memes[contador].url;
+    return (
+      <div className="galeria">
+        <img src={item} alt={"meme"}></img>
+        {/* {item.map((item, index) => {
+          return <img key={index} src={item.url} alt={("meme", index)}></img>;
+        })} */}
+        <button value={contador} onClick={this.handleButton}>
+          Next
+        </button>
+      </div>
+    );
   }
 }
-function card(props) {}
 export default App;
