@@ -2,27 +2,32 @@ import React from "react";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-function App() {
-  return (
-    <div className="App">
-      <div className="contenedor">
-        <h1 className="title">Meme creator</h1>
-        <MemeCreador></MemeCreador>
-      </div>
-      <Dummy></Dummy>
-    </div>
-  );
-}
-class MemeCreador extends React.Component {
+class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      top: "",
-      bottom: "",
+      memes: {},
+      isFetch: false,
       plantilla:
         "https://www.elsoldelcentro.com.mx/doble-via/virales/e7k71m-meme-origen/ALTERNATES/LANDSCAPE_1140/meme%20origen",
+      buttonActivated: true,
     };
   }
+
+  componentDidMount() {
+    fetch("https://api.imgflip.com/get_memes")
+      .then((response) => response.json())
+      .then((memesJson) =>
+        this.setState({ memes: memesJson.data.memes, isFetch: true })
+      );
+  }
+
+  handleButton = (event) => {
+    const { value } = event.target;
+    let count = Number(value) + 1;
+    if (count >= 100) count = 0;
+    this.setState({ index: count });
+  };
 
   handleChange = (event) => {
     const { name, value } = event.target;
@@ -30,11 +35,83 @@ class MemeCreador extends React.Component {
     // console.log(this.state.top + ":" + this.state.bottom);
   };
 
+  handleUrl = (event) => {
+    const { value } = event.target;
+    if (value !== "") {
+      this.setState({ plantilla: value });
+    } else {
+      this.setState({
+        plantilla:
+          "https://www.elsoldelcentro.com.mx/doble-via/virales/e7k71m-meme-origen/ALTERNATES/LANDSCAPE_1140/meme%20origen",
+      });
+    }
+  };
+
+  render() {
+    return (
+      <div className="App">
+        {this.state.buttonActivated === false && (
+          <button
+            className=""
+            onClick={() => this.setState({ buttonActivated: true })}
+          >
+            Abrir
+          </button>
+        )}
+
+        <div className="contenedor">
+          {this.state.isFetch === true && this.state.buttonActivated && (
+            <div className="galeriaTrue">
+              <div
+                className="btn-close"
+                onClick={() => this.setState({ buttonActivated: false })}
+              >
+                &times;
+              </div>
+              <div className="imagenes">
+                {this.state.memes.map((item) => (
+                  <img
+                    src={item.url}
+                    onClick={() => this.setState({ plantilla: item.url })}
+                  ></img>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="memeEditor">
+            <h1 className="title">Meme creator</h1>
+            <MemeCreador
+              plantilla={this.state.plantilla}
+              onUrl={this.handleUrl}
+            ></MemeCreador>
+          </div>
+        </div>
+      </div>
+    );
+  }
+}
+class MemeCreador extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      top: "",
+      bottom: "",
+    };
+  }
+  handleChange = (event) => {
+    const { name, value } = event.target;
+    this.setState({ [name]: value });
+  };
   render() {
     return (
       <div>
-        <Meme items={this.state}></Meme>
-        <MemeForm value={this.state} onChange={this.handleChange}></MemeForm>
+        <Meme items={this.state} plantilla={this.props.plantilla}></Meme>
+        <MemeForm
+          top={this.state.top}
+          bottom={this.state.bottom}
+          onChange={this.handleChange}
+          onUrl={this.props.onUrl}
+        ></MemeForm>
       </div>
     );
   }
@@ -43,7 +120,7 @@ function Meme(props) {
   return (
     <div className="meme-template">
       <img
-        src={props.items.plantilla}
+        src={props.plantilla}
         className="image-template"
         alt="template-plantilla"
       ></img>
@@ -59,66 +136,24 @@ function MemeForm(props) {
       <input
         placeholder="Texto superior"
         name="top"
-        value={props.value.top}
+        value={props.top}
         onChange={props.onChange}
       />
       <input
         placeholder="Texto inferior"
         name="bottom"
-        value={props.value.bottom}
+        value={props.bottom}
         onChange={props.onChange}
       />
-      <input
-        placeholder="Url Imagen"
-        name="plantilla"
-        onChange={props.onChange}
-      />
+      <div className="form-UrlAnotherImage">
+        <input
+          placeholder="Url Imagen"
+          name="plantilla"
+          onChange={props.onUrl}
+        />
+        <button type="reset">Limpiar</button>
+      </div>
     </form>
   );
-}
-
-class Dummy extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      memes: [],
-      isFetch: true,
-      index: 0,
-    };
-  }
-  componentDidMount() {
-    // console.log("Did Mount");
-    fetch("https://api.imgflip.com/get_memes")
-      .then((response) => response.json())
-      .then((memesJson) =>
-        this.setState({ memes: memesJson.data, isFetch: false })
-      );
-  }
-
-  handleButton = (event) => {
-    const { value } = event.target;
-    let count = Number(value) + 1;
-    if (count >= 100) count = 0;
-    this.setState({ index: count });
-  };
-
-  render() {
-    if (this.state.isFetch) {
-      return <h2 className="demo">"Loading...";</h2>;
-    }
-    let contador = this.state.index;
-    const item = this.state.memes.memes[contador].url;
-    return (
-      <div className="galeria">
-        <img src={item} alt={"meme"}></img>
-        {/* {item.map((item, index) => {
-          return <img key={index} src={item.url} alt={("meme", index)}></img>;
-        })} */}
-        <button value={contador} onClick={this.handleButton}>
-          Next
-        </button>
-      </div>
-    );
-  }
 }
 export default App;
